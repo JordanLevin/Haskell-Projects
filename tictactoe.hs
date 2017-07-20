@@ -1,6 +1,7 @@
 import System.IO
 import Data.List
 import Control.Monad
+import System.Exit
 
 data Board = Board [[Char]] deriving (Show)
 
@@ -11,14 +12,24 @@ main = do
 gameLoop :: Board -> Char -> IO ()
 gameLoop (Board info) turn = do
     let prev = if turn == 'X' then 'O' else 'X'
-    if checkWin (Board info) prev then putStrLn ("Player " ++ [prev] ++ " wins") else putStr " "
+    if checkWin (Board info) prev 
+        then do 
+            putStrLn ("Player " ++ [prev] ++ " wins") 
+            exitSuccess
+        else 
+            putStr ""
     putStrLn "Enter x coord" 
     x <- getLine
     putStrLn "Enter y coord" 
     y <- getLine
-    let next = if turn == 'X' then 'O' else 'X'
-    printBoard $ replaceRow (Board info) (read x :: Int) (read y :: Int) (turn) 
-    gameLoop (replaceRow (Board info) (read x :: Int) (read y :: Int) (turn)) next
+    if not $ checkValid (Board info) (read x :: Int) (read y :: Int) 
+        then do 
+            putStrLn "Spot is already taken"
+            gameLoop (Board info) turn 
+        else do
+            let next = if turn == 'X' then 'O' else 'X'
+            printBoard $ replaceRow (Board info) (read x :: Int) (read y :: Int) (turn) 
+            gameLoop (replaceRow (Board info) (read x :: Int) (read y :: Int) (turn)) next
 
 replaceRow :: Board -> Int -> Int -> Char -> Board
 replaceRow (Board info) 1 y c = Board ([replacePoint (info !! 0) y c] ++ [info !! 1] ++ [info !! 2])
@@ -36,9 +47,10 @@ checkWin board player = checkRows board player || checkCols board player || chec
 checkRows :: Board -> Char -> Bool
 checkRows (Board info) player = 
     case info of
-        [[a, b, c], _, _] -> a == player && a == b && b == c
-        [_, [a, b, c], _] -> a == player && a == b && b == c
-        [_, _, [a, b, c]] -> a == player && a == b && b == c
+        [[a, b, c], [d, e, f], [g, h, i]] ->
+            a == player && a == b && b == c ||
+            d == player && d == e && e == f || 
+            g == player && g == h && h == i
 
 checkCols :: Board -> Char -> Bool
 checkCols (Board info) player = 
@@ -54,6 +66,9 @@ checkDiag (Board info) player =
         [[a, _, d], [_, b, _], [e, _, c]] -> 
             (a == player && a == b && b == c) || 
             (d == player && d == b && b == e)
+
+checkValid :: Board -> Int -> Int -> Bool
+checkValid (Board info) x y = (info !! (x-1)) !! (y-1) == ' '
 
 
 printBoard :: Board -> IO ()
