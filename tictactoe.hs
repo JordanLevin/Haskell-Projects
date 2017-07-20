@@ -2,22 +2,16 @@ import System.IO
 import Data.List
 import Control.Monad
 
-{-data Board = Board Char Char Char Char Char Char Char Char Char-}
-{-data Board = Board [[Char]]-}
 data Board = Board [[Char]] deriving (Show)
 
-{-main = do-}
-    {-let board = Board ((' ',' ',' '),(' ',' ',' '),(' ',' ',' '))-}
-    {-let board = Board [' ',' ',' ',' ',' ',' ',' ',' ',' ']-}
-    {-let board = Board ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '-}
-    {-turn board-}
 main = do
     let board = Board [[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]
     gameLoop board 'X'
 
 gameLoop :: Board -> Char -> IO ()
 gameLoop (Board info) turn = do
-    {-hSetBuffering stdin NoBuffering-}
+    let prev = if turn == 'X' then 'O' else 'X'
+    if checkWin (Board info) prev then putStrLn ("Player " ++ [prev] ++ " wins") else putStr " "
     putStrLn "Enter x coord" 
     x <- getLine
     putStrLn "Enter y coord" 
@@ -35,6 +29,31 @@ replacePoint :: [Char] -> Int -> Char -> [Char]
 replacePoint row 1 c = [c] ++ [row !! 1] ++ [row !! 2]
 replacePoint row 2 c = [row !! 0] ++ [c] ++ [row !! 2]
 replacePoint row 3 c = [row !! 0] ++ [row !! 1] ++ [c]
+
+checkWin :: Board -> Char -> Bool
+checkWin board player = checkRows board player || checkCols board player || checkDiag board player
+
+checkRows :: Board -> Char -> Bool
+checkRows (Board info) player = 
+    case info of
+        [[a, b, c], _, _] -> a == player && a == b && b == c
+        [_, [a, b, c], _] -> a == player && a == b && b == c
+        [_, _, [a, b, c]] -> a == player && a == b && b == c
+
+checkCols :: Board -> Char -> Bool
+checkCols (Board info) player = 
+    case info of 
+        [[a, d, g], [b, e, h], [c, f, i]] -> 
+            (a == player && a == b && b == c) || 
+            (d == player && d == e && e == f) || 
+            (g == player && g == h && h == i)
+
+checkDiag :: Board -> Char -> Bool
+checkDiag (Board info) player = 
+    case info of
+        [[a, _, d], [_, b, _], [e, _, c]] -> 
+            (a == player && a == b && b == c) || 
+            (d == player && d == b && b == e)
 
 
 printBoard :: Board -> IO ()
