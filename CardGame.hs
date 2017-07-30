@@ -20,8 +20,16 @@ drawPos (Deck cards) pos
     | pos >= length cards = error "Invalid position in deck"
     | otherwise = (Deck $ (take pos cards) ++ (drop (pos+1) cards), cards !! pos)
 
+addPos :: Deck -> Card -> Int -> Deck
+addPos (Deck cards) card pos
+    | pos > length cards = error "Invalid position in deck"
+    | otherwise = Deck $ (take pos cards) ++ [card] ++ (drop (pos) cards)
+
+addTop :: Deck -> Card -> Deck
+addTop (Deck cards) card = addPos (Deck cards) card $ length cards
+
 drawTop :: Deck -> (Deck, Card)
 drawTop (Deck cards) = drawPos (Deck cards) $ length cards - 1
 
-
-{-shuffleDeck :: Deck -> Deck-}
+shuffleDeck :: Deck -> Deck
+shuffleDeck (Deck cards) = 
